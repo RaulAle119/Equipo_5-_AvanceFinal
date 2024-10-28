@@ -1,4 +1,4 @@
-function Show-Resources {
+function Show_Resources {
 
     function Get-CPUUsage {
         Get-WmiObject -Class Win32_Processor | ForEach-Object {
