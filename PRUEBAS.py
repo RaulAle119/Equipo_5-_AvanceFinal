@@ -7,31 +7,30 @@ def importar_modulo_powershell(ruta_modulo):
         subprocess.run(["powershell", "-Command", comando_importar], check=True)
         print(f"Módulo '{ruta_modulo}' importado correctamente.")
 
-        # Listar funciones disponibles
-        resultado = subprocess.run(["powershell", "-Command", "Get-Command -Module Resources"], check=True, capture_output=True, text=True)
+        # Verifica las funciones del módulo importado
+        resultado = subprocess.run(["powershell", "-Command", "Get-Command -Module Arch_Oc"], check=True, capture_output=True, text=True)
         print(f"Funciones disponibles en el módulo:\n{resultado.stdout}")
     except subprocess.CalledProcessError as e:
         print(f"Error al importar el módulo '{ruta_modulo}': {e}")
 
-def ejecutar_funcion_powershell(Show_Resources):
+def ejecutar_funcion_powershell(funcion):
     try:
-        # Encapsula la función en comillas para manejar el guion
-        comando_ejecutar = f"& '{{{Show_Resources}}}'"  # Utiliza el símbolo de llamada (&)
-        resultado = subprocess.run(["powershell", "-Command", comando_ejecutar], check=True, capture_output=True, text=True)
-        print(f"Resultado de la función '{Show_Resources}':\n{resultado.stdout}")
+        # Ejecuta la función sin encapsularla en comillas innecesarias
+        resultado = subprocess.run(["powershell", "-Command", funcion], check=True, capture_output=True, text=True)
+        print(f"Resultado de la función '{funcion}':\n{resultado.stdout}")
     except subprocess.CalledProcessError as e:
-        print(f"Error al ejecutar la función '{Show_Resources}': {e}\nSalida de error:\n{e.stderr}")
+        print(f"Error al ejecutar la función '{funcion}': {e}\nSalida de error:\n{e.stderr}")
 
 def analizar_sistema():
     sistema = platform.system()
     
     if sistema == "Windows":
         print("Estás usando Windows.")
-        ruta_modulo = r"C:\\Users\\raulg\\Documents\\GitHub\\Equipo_5-_AvanceFinal\\Resources.psm1"
+        ruta_modulo = r"C:\\Users\\raulg\\Documents\\GitHub\\Equipo_5-_AvanceFinal\\Arch_Oc.psm1"
         importar_modulo_powershell(ruta_modulo)
         
         # Llama a la función correcta
-        ejecutar_funcion_powershell('Show_Resources')  # Asegúrate de que este sea el nombre correcto
+        ejecutar_funcion_powershell('archivos_ocultos')  # Asegúrate de que este sea el nombre correcto
     elif sistema == "Linux":
         print("Estás usando Linux.")
     else:
