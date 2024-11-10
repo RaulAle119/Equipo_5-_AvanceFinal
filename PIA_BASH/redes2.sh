@@ -9,7 +9,7 @@ main_network() {
         echo "4) Ver puertos abiertos"
         echo "5) Generar Reporte" 
         echo "6) Salir"
-        read -p "Seleccione una opcion: " option
+        read -p "Seleccione una opción: " option
         
         case $option in
             1)
@@ -28,7 +28,7 @@ main_network() {
                 report
                 ;;
             6)
-                read -p "¿Está seguro que desea salir? (s/n): " confirm
+                read -p "¿Esta seguro que desea salir? (s/n): " confirm
                 if [[ $confirm == "s" ]]; then
                     break
                 fi
@@ -43,42 +43,40 @@ main_network() {
 
 network_monitoring() {
     echo "Lista de Redes Disponibles"
-    ip a
+    ip a || echo "Error al obtener la lista de redes."
 }
 
 monitoring_connections() {
     echo "Listado de Conexiones Activas"
-    sudo netstat -ant
+    sudo netstat -ant || echo "Error al obtener el listado de conexiones."
 }
 
 monitoring_services() {
     echo "Listado de Servicios Activos"
-    sudo systemctl list-units --type=service --state=active
+    sudo systemctl list-units --type=service --state=active || echo "Error al obtener el listado de servicios."
 }
 
 open_ports() {
     echo "Puertos abiertos:"
-    sudo ss -tuln
+    sudo ss -tuln || echo "Error al obtener la lista de puertos abiertos."
 }
 
 report() {
     echo "Generando reporte..."
     {
         echo "Redes disponibles:"
-        ip a
+        ip a || echo "Error al obtener la lista de redes."
         echo ""
         echo "Conexiones activas:"
-        sudo netstat -ant
+        sudo netstat -ant || echo "Error al obtener el listado de conexiones."
         echo ""
         echo "Servicios activos:"
-        sudo systemctl list-units --type=service --state=active
+        sudo systemctl list-units --type=service --state=active || echo "Error al obtener el listado de servicios."
         echo ""
         echo "Puertos abiertos:"
-        sudo ss -tuln
+        sudo ss -tuln || echo "Error al obtener la lista de puertos abiertos."
     } > network_report.txt
     echo "Reporte generado en network_report.txt"
 }
-
-
 
 

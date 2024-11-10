@@ -1,5 +1,5 @@
 # Importar funciones
-source mainredes.sh
+source redes2.sh
 source esc_port.sh
 # Mostrar el menu 
 main() {

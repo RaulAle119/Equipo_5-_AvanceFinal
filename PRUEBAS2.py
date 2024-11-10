@@ -1,40 +1,42 @@
 import platform
 import subprocess
-import time
 import os
 
-def ejecutar_script_powershell(ruta_script):
-    try:
-        # Verificar si el archivo existe
-        if not os.path.isfile(ruta_script):
-            print(f"El archivo {ruta_script} no existe.")
-            return
+script_path = r"C:\Users\raulg\Documents\GitHub\Equipo_5-_AvanceFinal\PIA_PC"
 
-        inicio = time.time()
-        resultado = subprocess.run(
-            ["powershell", "-ExecutionPolicy", "Bypass", "-File", ruta_script],
-            check=True,
-            capture_output=True,
-            text=True,
-            
-        )
-        fin = time.time()
-        print(f"Resultado del script de PowerShell:\n{resultado.stdout}")
-        print(f"Tiempo de ejecución: {fin - inicio:.2f} segundos")
+# Función para ejecutar scripts de PowerShell
+def run_powershell_script(script_name):
+    script = os.path.join(script_path, script_name)
+    if not os.path.isfile(script):
+        print(f"El script {script_name} no existe.")
+        return
+    print("Ejecutando PowerShell:", script_name)
+    try:
+        subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", script], check=True)
     except subprocess.CalledProcessError as e:
-        print(f"Error al ejecutar el script de PowerShell: {e}\nSalida de error:\n{e.stderr}\nSalida estándar:\n{e.stdout}")
-    except subprocess.TimeoutExpired:
-        print(f"El script de PowerShell superó el tiempo de espera de 60 segundos.")
+        print(f"Error al ejecutar el script de PowerShell: {e}")
+
+# Función para ejecutar scripts de Bash
+def run_bash_script(script_name):
+    script = os.path.join(script_path, script_name)
+    if not os.path.isfile(script):
+        print(f"El script {script_name} no existe.")
+        return
+    print("Ejecutando Bash:", script_name)
+    try:
+        subprocess.run(["bash", script], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error al ejecutar el script de Bash: {e}")
 
 def analizar_sistema():
     sistema = platform.system()
     
     if sistema == "Windows":
         print("Estás usando Windows.")
-        ruta_script = r"C:\Users\raulg\Documents\GitHub\Equipo_5-_AvanceFinal\PIA_PC\main.ps1"
-        ejecutar_script_powershell(ruta_script)
+        run_powershell_script("main.ps1")
     elif sistema == "Linux":
         print("Estás usando Linux.")
+        run_bash_script("main12.sh")
     else:
         print(f"El sistema operativo detectado es: {sistema}")
 

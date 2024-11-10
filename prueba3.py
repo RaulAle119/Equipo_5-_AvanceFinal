@@ -7,6 +7,7 @@ script_path = r"C:\Users\raulg\Documents\GitHub\Equipo_5-_AvanceFinal\PIA_PC\mai
 # Funcon para ejecutar scripts de PowerShell
 def run_powershell_script(script_name):
     script = os.path.join(script_path, script_name)
+    print("a", script_name)
     subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", script], check=True)
 
 # Funcion para ejecutar scripts de Bash

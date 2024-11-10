@@ -44,5 +44,4 @@ function escan_port() {
    fi
  done
 }
-#Llamar a la funcion
-escan_port "$@"
+
