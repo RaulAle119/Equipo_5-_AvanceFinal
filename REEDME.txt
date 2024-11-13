@@ -1,0 +1,95 @@
+NOTA: Todos los archivos deberan estar en la misma ruta
+-----------------------------------------------------------------------------------------------------------------
+
+platform: Identificar el sistema operativo en el que se está ejecutando el script
+subprocess: Ejecutar comandos y scripts externos desde Python
+os: Trabajar con rutas de archivos y otras funcionalidades del sistema operativo
+hashlib: Calcular el hash del archivo actual
+ 
+import platform
+import subprocess
+import os
+import hashlib
+import os
+
+-----------------------------------------------------------------------------------------------------------------
+
+La primera parte del script calcula el hash SHA-256 del archivo donde está guardado el script,
+útil para verificar su integridad. El hash calculado se guarda en un archivo de texto llamado "hash_arch.txt"
+
+def hash_propio():
+    archivo_actual = __file__ 
+    mihash = hashlib.sha256()
+
+    with open(archivo_actual, "rb") as f:
+        for bloque in iter(lambda: f.read(4096), b""):
+            mihash.update(bloque)
+
+    # Guarda el hash en un archivo txt
+    with open("hash_arch.txt", "w") as f:
+        f.write(f"Hash SHA-256 del archivo '{archivo_actual}': {mihash.hexdigest()}\n")
+    print("Se guardo el hash en hash_arch.txt")
+
+hash_propio()
+script_path = r"C:\Users\raulg\Desktop\AV_FINAL\PIA_PS"
+
+-----------------------------------------------------------------------------------------------------------------
+
+run_powershell_script:
+Verifica que el archivo PowerShell existe en la ruta dada
+Ejecuta el archivo de PowerShell si está presente, omitiendo las restricciones de ejecución
+Informa si hay errores, lo que ayuda a manejar posibles fallos en la ejecución del script de PowerShell
+
+def run_powershell_script(script_name):
+    script = os.path.join(script_path, script_name)
+
+    if not os.path.isfile(script):
+        print(f"El script {script_name} no existe.")
+        return
+    print("Ejecutando PowerShell:", script_name)
+    try:
+        subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", script], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error al ejecutar el script de PowerShell: {e}")
+
+-----------------------------------------------------------------------------------------------------------------
+
+run_bash_script:
+Verifica si el archivo de Bash existe en la ruta especificada
+Ejecuta el archivo de Bash con el intérprete de Bash si el archivo existe
+Informa si hay errores de ejecución
+
+def run_bash_script(script_name):
+    script = os.path.join(script_path, script_name)
+    if not os.path.isfile(script):
+        print(f"El script {script_name} no existe.")
+        return
+    print("Ejecutando Bash:", script_name)
+    try:
+        subprocess.run(["bash", script], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error al ejecutar el script de Bash: {e}")
+
+-----------------------------------------------------------------------------------------------------------------
+La función analizar_sistema revisa qué sistema operativo se está usando:
+Si es Windows, ejecuta un archivo PowerShell llamado main.ps1
+Si es Linux, ejecuta un archivo Bash llamado main12.sh
+Si detecta otro sistema operativo, solo muestra el nombre del sistema, pero no ejecuta nada
+
+NOTA: Puede darse el caso que no encuentre los archivos de main.ps1 o main12.sh, en ese caso puede cambiar el nombre
+del archivo y poner toda la ruta donde se encuentre este
+
+def analizar_sistema():
+    sistema = platform.system()
+    
+    if sistema == "Windows":
+        print("Estas usando Windows.")
+        run_powershell_script("main.ps1") <-------- Puede usar el nombre o ruta dependiendo si encuentra o no el archivo
+    elif sistema == "Linux":
+        print("Estas usando Linux.")
+        run_bash_script("main12.sh")<-------- Puede usar el nombre o ruta dependiendo si encuentra o no el archivo
+    else:
+        print(f"El sistema operativo detectado es: {sistema}")
+
+if __name__ == "__main__":
+    analizar_sistema()

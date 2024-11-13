@@ -1,0 +1,258 @@
+---------------------------------------------------------------------------------------------
+                                     MENU PRINCIPAL
+
+Este script en Bash muestra un menú simple en la terminal, en el cual puedes elegir entre 
+distintas opciones para monitorear la red o los puertos. Al elegir una opción, el script 
+ejecuta funciones que están en otros archivos (mainredes.sh y esc_port.sh). Es una 
+especie de "controlador" que te permite ejecutar tareas de red de manera sencilla. 
+Ejecución del Script 
+Para usarlo, solo debes ejecutarlo en la terminal: 
+bash 
+Copiar código 
+./nombre_del_script.sh 
+Explicación del Script 
+Importación de Funciones 
+source mainredes.sh y source esc_port.sh sirven para traer funciones desde 
+otros archivos. Estas funciones (main_network y escan_port) son las que se 
+ejecutarán según la opción elegida en el menú. 
+Función main 
+Define el menú principal que muestra las opciones disponibles. Imprime el 
+título "MENU" y las opciones: 
+Opción 1: Monitoreo de Red. 
+Opción 2: Monitoreo de Puertos. 
+Opción 3: Salir. 
+Ciclo while para el Menú 
+Este ciclo asegura que el menú se muestre continuamente hasta que elijas la 
+opción de salir (3). 
+Al elegir una opción, el script la lee con read y luego evalúa qué hacer usando case: 
+Caso 1: Llama a la función main_network (se supone que hace 
+monitoreo de red; viene de mainredes.sh). 
+Caso 2: Llama a la función escan_port para monitorear los puertos 
+(viene de esc_port.sh). 
+Caso 3: Usa break para salir del ciclo y terminar el script. 
+Opción Inválida: Si ingresas algo que no es una opción válida (ni 1, ni 2, 
+ni 3), muestra un mensaje de "Opcion Invalida". 
+Script 
+# Importar funciones 
+source mainredes.sh 
+source esc_port.sh 
+# Mostrar el menu  
+main() { 
+    echo "" 
+    echo "          MENU          " 
+    echo "------------------------" 
+    echo "Seleccione una opcion:" 
+    echo "1) Monitoreo de Red" 
+    echo "2) Monitoreo de Puertos" 
+    echo "3) Salir" 
+} 
+ 
+while true; do 
+    main 
+    read -p "Opcion: " option 
+ 
+    case $option in 
+         
+            main_network 
+            ;; 
+        2) 
+            escan_port   
+            ;; 
+         
+            break 
+            ;; 
+        *) 
+            echo "Opcion Invalida" 
+            ;; 
+    esac 
+ 
+    echo "" 
+done
+-------------------------------------------------------------------------------------------------------------                                                 
+                                              ESCANEO DE PUERTOS
+
+#!/bin/bash 
+#Al momento que se va a abrir el archivo se tiene que indicar la IP. Ej: ./esc_port.sh 
+000.000.00.0 
+#La funcion sirve para marcar error si no se ingreso la IP correctamente 
+function error_prog() { 
+echo "Error: $1" 
+exit 1 
+} 
+#Comprobar la IP 
+function escan_port() { 
+if [ -z "$1" ]; then 
+error_prog "No se proporcino la dirección IP" 
+read -p "Ingresa una direccion IP: " ip 
+else 
+ip=$1 
+f
+ i 
+# Verifica si la direccion IP dada se encuentra en el formato establecido 
+if [[ ! $ip =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then 
+error_prog "El formato de la IP no es correcto, el formato debe ser como el ejemplo siguiente: 
+192.168.0.1" 
+f
+ i 
+#Ingresa el rango de puertos, indicados con un espacio 
+read -p "Ingrese el puerto inicial y final, separados por un espacio (por defecto 1 1024): " port_in 
+port_fin 
+#En dado caso de que no se indiquen los puertos, se usaran los valores predeteminados 
+port_in=${port_in:-1} 
+port_fin=${port_fin:-1024} 
+#Se hace una verificacion de que los puertos y rango sean validos 
+if ! [[ $port_in =~ ^[0-9]+$ && $port_fin =~ ^[0-9]+$ && $port_in -le $port_fin ]]; then 
+error_prog "El rango de los puertos no es valido, ingresalos nuevamente." 
+f
+ i 
+#Se escanean los puertos del 1 al 1024 
+for port in $(seq $port_in $port_fin); do 
+# Intenta conectar al puerto usando bash y /dev/tcp 
+(echo >/dev/tcp/$ip/$port) >/dev/null 2>&1 
+#Comprueba el estado de la conexion 
+if [ $? -eq 0 ]; then 
+echo "El puerto $port esta abierto" 
+else 
+echo "El puerto $port esta cerrado" 
+f
+ i 
+done 
+} 
+#Llamar a la funcion 
+escan_port "$@" 
+Escaneo de Puertos 
+Este script en Bash es para escanear puertos en una dirección IP específica, que se ingresa 
+cuando ejecutas el archivo. Verifica si los puertos están "abiertos" o "cerrados" entre un rango 
+que puedes especificar o que, si prefieres, toma por defecto. Es ideal para revisar conexiones 
+en una red local. 
+Ejecución del Script 
+Para correr el script, necesitas pasarle una dirección IP al momento de abrirlo. Ejemplo de uso: 
+bash 
+Copiar código 
+./esc_port.sh 192.168.0.1 
+Explicación del Script 
+Función error_prog 
+Esta función se usa para mostrar un mensaje de error cuando hay algún 
+problema (como una IP incorrecta) y luego cierra el script. 
+Muestra el mensaje de error y termina la ejecución. 
+Función escan_port 
+La función principal que hace el trabajo de escanear los puertos en la IP. 
+Chequeo de IP: 
+Si no ingresas una IP, el script te pedirá que la ingreses manualmente. 
+Luego, valida que la IP esté en el formato correcto (ejemplo: 
+192.168.0.1). Si no cumple, muestra un error y termina. 
+Ingreso del Rango de Puertos: 
+Te pedirá que ingreses un rango de puertos (inicio y final), separados por 
+un espacio. Si no indicas un rango, usa por defecto del puerto 1 al 1024. 
+Validación del Rango de Puertos: 
+Revisa que los valores ingresados sean números y que el rango sea 
+válido. Si hay algún error, muestra un mensaje y se termina. 
+Escaneo de Puertos: 
+Usa un ciclo para intentar conectarse a cada puerto dentro del rango 
+que indicaste. 
+Usa un truco con /dev/tcp para intentar conectarse y así ver si el puerto 
+está abierto o cerrado. 
+Si el puerto está abierto, muestra un mensaje; si no, indica que está 
+cerrado. 
+Llamada a la Función: 
+Finalmente, el script llama a la función escan_port y empieza a trabajar con la 
+IP que ingresaste. 
+Script 
+#!/bin/bash 
+#Al momento que se va a abrir el archivo se tiene que indicar la IP. Ej: ./esc_port.sh 
+000.000.00.0 
+#La funcion sirve para marcar error si no se ingreso la IP correctamente 
+function error_prog() { 
+echo "Error: $1" 
+exit 1 
+} 
+#Comprobar la IP 
+function escan_port() { 
+if [ -z "$1" ]; then 
+error_prog "No se proporcino la dirección IP" 
+read -p "Ingresa una direccion IP: " ip 
+else 
+ip=$1 
+f
+ i 
+# Verifica si la direccion IP dada se encuentra en el formato establecido 
+if [[ ! $ip =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then 
+error_prog "El formato de la IP no es correcto, el formato debe ser como el ejemplo 
+siguiente: 192.168.0.1" 
+f
+ i 
+#Ingresa el rango de puertos, indicados con un espacio 
+read -p "Ingrese el puerto inicial y final, separados por un espacio (por defecto 1 1024): 
+" port_in port_fin 
+#En dado caso de que no se indiquen los puertos, se usaran los valores 
+predeteminados 
+port_in=${port_in:-1} 
+port_fin=${port_fin:-1024} 
+#Se hace una verificacion de que los puertos y rango sean validos 
+if ! [[ $port_in =~ ^[0-9]+$ && $port_fin =~ ^[0-9]+$ && $port_in -le $port_fin ]]; then 
+error_prog "El rango de los puertos no es valido, ingresalos nuevamente." 
+f
+ i 
+#Se escanean los puertos del 1 al 1024 
+for port in $(seq $port_in $port_fin); do 
+# Intenta conectar al puerto usando bash y /dev/tcp 
+(echo >/dev/tcp/$ip/$port) >/dev/null 2>&1 
+#Comprueba el estado de la conexion 
+if [ $? -eq 0 ]; then 
+echo "El puerto $port esta abierto" 
+else 
+echo "El puerto $port esta cerrado" 
+f
+ i 
+done 
+} 
+#Llamar a la funcion 
+escan_port "$@" 
+---------------------------------------------------------------------------------------------------------------------
+                                                   MONITOREO DE REDES
+
+Este script en Bash permite monitorear redes, conexiones, servicios, y puertos abiertos, 
+además de generar un reporte de toda esta información en un archivo. Ofrece un menú con 
+varias opciones de monitoreo, y puedes elegir la que necesites. Es útil para gestionar y revisar 
+el estado de la red y los servicios de un sistema. 
+Ejecución del Script 
+Para correr el script, solo debes ejecutarlo en la terminal: 
+bash 
+Copiar código 
+./nombre_del_script.sh 
+Explicación del Script 
+Función main_network 
+Muestra el menú de monitoreo de redes con las siguientes opciones: 
+Opción 1: Monitoreo de redes. 
+Opción 2: Monitoreo de conexiones. 
+Opción 3: Monitoreo de servicios activos. 
+Opción 4: Ver puertos abiertos. 
+Opción 5: Generar un reporte completo de la red. 
+Opción 6: Salir. 
+Después de seleccionar una opción, se ejecuta la función correspondiente: 
+1-5: Ejecutan las funciones de monitoreo o reporte. 
+6 (Salir): Pregunta si estás seguro antes de cerrar el menú. 
+Para evitar que el menú se cierre automáticamente, te pide presionar "Enter" 
+antes de regresar al menú. 
+Funciones de Monitoreo 
+network_monitoring: 
+Muestra las redes disponibles en el sistema usando ip a, que lista la 
+configuración de red. 
+monitoring_connections: 
+Muestra todas las conexiones activas en la red usando netstat, 
+indicando puertos abiertos y conexiones en curso. Requiere permisos 
+de administrador (sudo). 
+monitoring_services: 
+Muestra una lista de los servicios activos del sistema usando systemctl. 
+Es útil para ver qué servicios están corriendo actualmente. Requiere 
+permisos de administrador. 
+open_ports: 
+Muestra una lista de puertos abiertos y en escucha usando ss. Requiere 
+permisos de administrador y es útil para revisar la seguridad y 
+accesibilidad de los puertos en el sistema. 
+Función report 
+Genera un reporte detallado con la información de redes, conexiones activas, 
+servicios activos y puertos abiertos, guardándolo en un archivo llamado 
+network_report.txt. 
+Esta función recopila todos los datos en un solo archivo, útil para tener un 
+registro de la situación actual de la red y los servicios.

@@ -1,0 +1,294 @@
+Documentacion PIA PT1
+Código Arch_Oc.psd1
+Este programa es para hacer una busqueda de una carpeta especifica para buscar en la misma archivos ocultos.
+Primero se cambia la politica de ejecucion para que funcione el script; despues, pregunta al usuario el nombre de la carpeta que desea buscar. Se buscara en todo el equipo C:\ por defecto. En dado caso de que exista en un error en la busqueda seguira la ejecucion.
+Hay 2 posibles casos: si encontro la carpeta indicada y si no la encontro.
+Si la encontro nos mostrara en pantalla todas las carpetas que tienen el nombre que especificamos, para despues agarrar una carpeta y buscar los archivos que se encuentren ocultos. Si los hay nos imprimira cuales son, y sino, nos dira que no hay ninguno.
+Si no encontro ninguna carpeta con el nombre que indicamos nos aparecera el mensaje de que no se encontro en el directorio C:\. 
+Y ya después empezamos con el final del programa para así dar por terminado en programa
+# Cambiamos la política de ejecución
+Set-ExecutionPolicy -ExecutionPolicy Bypass 
+
+#Asignamos una funcion la cual servira para buscar los archivos ocultos en la ruta deseada
+function archivos_ocultos { param ([string]$ruta)
+
+#Aqui escribimos unicamente el nombre de la carpeta, no la ruta
+$carpeta = Read-Host "Por favor, proporciona el nombre de la carpeta a buscar"
+
+#Buscara en todo el equipo el nombre de la carpeta
+$directorio_raiz = "C:\"
+
+$buscar = Get-ChildItem -Path $directorio_raiz -Recurse -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $carpeta }
+
+#Dividimos en 2 posibles opciones, si encontro una carpeta con el nombre que pedimos
+if ($buscar) {
+    #Al encontrar una busqueda similar, imprimira todos los nombres de las carpetas que tengan en su direccion el nombre de la carpeta
+    Write-Host "Se encontro la carpeta:"
+    $buscar | ForEach-Object { Write-Host $_.FullName }
+    $buscar | ForEach-Object { $ruta = $_.FullName }
+    write-host $ruta
+    #Busca los archivos ocultos dentro de la carpeta encontrada
+        Write-Host "Buscando archivos ocultos en la carpeta $ruta"
+        $busqueda = Get-ChildItem -Path $ruta -Recurse -Force | Where-Object { $_.Attributes -match 'Hidden' }
+        #Si encuentra algun archivo oculto en la carpeta, nos indicara cuales son. AVISO: Tarda en cargar el programa, es normal debido a que busca en todo el equipo la carpeta. El tiempo no excede de los 3 minutos.
+        if ($busqueda) {
+            Write-Host "Archivos ocultos encontrados:"
+            $busqueda | ForEach-Object { Write-Host $_.FullName }
+        } else {
+        #En caso de que no, nos avisara que no hay ninguno
+            Write-Host "No se encontraron archivos ocultos en $ruta."
+        }
+#Al momento de escribir el nombre de la carpeta y no exista, nos aparecera este mensaje de que no hubo busquedas relacionadas
+} else {
+    Write-Host "No se encontraron carpetas con el nombre '$carpeta' en $directorio_raiz."
+}
+}
+
+﻿
+Codigo Recursos.psm1
+En este código es una revisión de uso de recursos del sistema.
+La funcion principal lo que hace es llamar a las demas funciones donde recolecta los datos del sistema, tales como CPU, memoria, el disco y la red.
+Con la funcion Get-CPUUsage se obtiene el uso del CPU y el nombre y porcentanje de carga de cada procesador.
+Con Get-MemoryUsage se obtienen datos de la memoria total, cuanto espacio libre queda y cuanto se uso, convirtiendo los valores de KB a GB.
+Despues, Get-DiskUsage nos muestra el espacio total, libre y usado en las unidades de disco duro, donde convierte de bytes a GB.
+Y por ultimo, con Get-NetworkUsage se obtienen datos del trafico de la red, ademas de convertir los bytes enviados y recibidos a megabytes para rendodear el resultado.
+Toda esta informacion se imprime en tablas para que sea mas legible.
+
+﻿function Show-Resources {
+
+    function Get-CPUUsage {
+        Get-WmiObject -Class Win32_Processor | ForEach-Object {
+            [pscustomobject]@{
+                CPU = $_.Name
+                LoadPercentage = $_.LoadPercentage
+            }
+        }
+    }
+    function Get-MemoryUsage {
+        Get-WmiObject -Class Win32_OperatingSystem | ForEach-Object {
+            [pscustomobject]@{
+                TotalMemoryGB = [math]::round($_.TotalVisibleMemorySize / 1MB, 2)
+                FreeMemoryGB = [math]::round($_.FreePhysicalMemory / 1MB, 2)
+                UsedMemoryGB = [math]::round(($_.TotalVisibleMemorySize - $_.FreePhysicalMemory) / 1MB, 2)
+            }
+        }
+    }
+    function Get-DiskUsage {
+        Get-WmiObject -Class Win32_LogicalDisk | Where-Object {$_.DriveType -eq 3} | ForEach-Object {
+            [pscustomobject]@{
+                Drive = $_.DeviceID
+                TotalSpaceGB = [math]::round($_.Size / 1GB, 2)
+                FreeSpaceGB = [math]::round($_.FreeSpace / 1GB, 2)
+                UsedSpaceGB = [math]::round(($_.Size - $_.FreeSpace) / 1GB, 2)
+            }
+        }
+    }
+    function Get-NetworkUsage {
+        Get-NetAdapterStatistics | ForEach-Object {
+            [pscustomobject]@{
+                Adapter = $_.Name
+                ReceivedBytesMB = [math]::round($_.ReceivedBytes / 1MB, 2)
+                SentBytesMB = [math]::round($_.SentBytes / 1MB, 2)
+            }
+        }
+    }
+
+    Write-Host "Uso de CPU:"
+    Get-CPUUsage | Format-Table -AutoSize
+    Write-Host "`nUso de Memoria:"
+    Get-MemoryUsage | Format-Table -AutoSize
+    Write-Host "`nUso de Disco:"
+    Get-DiskUsage | Format-Table -AutoSize
+    Write-Host "`nUso de Red:"
+    Get-NetworkUsage | Format-Table -AutoSize
+}
+
+
+
+Virus Total
+este programa es una revisión de los hashes del archivo y consulta de la API de virus total usando los hashes de los archivos locales 
+la linea de código 1 establece una función llamada Get-VirusTotalReport
+después se declara un paramtero llamado ApiKey, que es una cadena que contendrá la clave de API, después se motrara un mensaje en la patalla pidiendo al usuario que ingrese un hash
+para después de capturarlo crear una dirección URL que se usara para hacer la solicitud a la API.
+Realiza una solicitud GET a la URI construida, utilizando los encabezados especificados, y almacena la respuesta en la variable
+Después extrae los resltados de análisis de la respuesta y los formatea como una lista de almacenamiento, después devuelve los resultados del análisis, y capturara cualquier error que ocurra en el bloque de try.
+después muestra un mensaje de error en la pantalla incluyendo detalles sobre el error
+después Define una segunda función llamada Scan-FilesInFolder, Declara dos parámetros: FolderPath (ruta de la carpeta a escanear) y ApiKey, Obtiene todos los archivos en la carpeta especificada y los almacena en la variable $files, Inicia un bucle foreach que iterará sobre cada archivo en la colección $files.
+después Inicia un bloque try dentro del bucle para manejar errores específicos de cada archivo, calcula el hash SHA256 del archivo actual y lo almacena en la variable $hash
+Crea la URL para solicitar el informe del archivo en VirusTotal, utilizando el hash calculado y la clave de API
+después se Muestra en la consola cuántos antivirus marcaron el archivo como malicioso.
+Finaliza los bloques catch y foreach, así como la función Scan-FilesInFolder, y finalmente cierra la función Get-VirusTotalReport.
+function Get-VirusTotalReport {
+    param ([string]$ApiKey)
+    
+    Write-Host "Ingresa el Hash que desea analizar"
+    $Hash = Read-Host
+    $uri = "https://www.virustotal.com/api/v3/files/$Hash"
+    $headers = @{
+        "x-apikey" = "b5323ef020ab7a5600f682882c05417d58603b4e725d55841dab72902f76be59"
+    }
+    
+    try {
+        $response = Invoke-RestMethod -Uri $uri -Method Get -Headers $headers
+        $results = $response.data.attributes.last_analysis_results | Format-List
+        return $results
+    }
+    catch {
+        Write-Host "Ocurrio un error al obtener el reporte de VirusTotal: $_"
+    }
+    function Scan-FilesInFolder {
+        param ([string]$FolderPath, [string]$ApiKey)
+        $files = Get-ChildItem -Path $FolderPath -File
+        foreach ($file in $files) {
+            try {
+                $hash = Get-FileHash -Path $file.FullName -Algorithm SHA256
+            
+                $url = "https://www.virustotal.com/vtapi/v2/file/report?apikey=$ApiKey&resource=$($hash.Hash)"
+                $response = Invoke-RestMethod -Uri $url -Method Get
+
+                if ($response.response_code -eq 1) {
+                    Write-Output "$($file.Name): $($response.positives)/$($response.total) antivirus lo marcaron como malicioso."
+                } else {
+                    Write-Output "$($file.Name): El archivo no se encuentra base de datos de VirusTotal."
+                }
+            }
+            catch {
+                Write-Output "Ocurrio un error con $($file.Name): $_"
+            }
+        }
+    }
+}
+
+Este código permite analizar archivos en busca de amenazas utilizando la API de VirusTotal, ya sea de manera individual mediante un hash o en masa a través de todos los archivos en una carpeta.
+
+
+
+
+ConexionesSospechosas.psm1
+Este módulo de PowerShell está diseñado para identificar conexiones de red activas en un sistema y verificar la reputación de las direcciones IP remotas en VirusTotal. Ayuda a detectar posibles amenazas basándose en la información recopilada de la API de VirusTotal.
+el código empieza con una Configuración a la clave de API de VirusTotal. Permite actualizar la clave de forma dinámica, después se va a consultar la dirección IP en virus total 
+y de salida devuelve la respuesta de la API de virustotal en formato JSON si la consulta es exitosa.
+después  detecta conexiones TCP activas en el sistema y consulta su reputación en VirusTotal
+
+# ConexionesSospechosas.psm1
+# Este módulo permite detectar conexiones de red sospechosas y consultar su reputación en VirusTotal.
+
+# API Key de VirusTotal
+$global:apiKey = "99247f14f373a307e57fec6a6e63d779488072f5adaf5ba82e3695c2ad5b489f"
+
+# Función para configurar la API Key de VirusTotal (en caso de querer modificarla dinámicamente)
+function Set-ApiKey {
+    param (
+        [string]$key  # Nueva clave de la API
+    )
+    $global:apiKey = $key  # Almacenamos la clave de la API en una variable global
+    Write-Host "API Key actualizada."
+}
+
+# Función para consultar la reputación de una IP en VirusTotal
+function Consultar-VirusTotalIP {
+    param (
+        [string]$ip  # Dirección IP que se va a consultar
+    )
+    
+    # Verificamos si se ha establecido una API Key
+    if (-not $global:apiKey) {
+        Write-Host "Error: No se ha configurado una API Key de VirusTotal."
+        return
+    }
+
+    # URL de la API de VirusTotal para verificar la reputación de una IP
+    $url = "https://www.virustotal.com/vtapi/v2/ip-address/report?apikey=$global:apiKey&ip=$ip"
+
+    # Realizamos la solicitud GET a la API
+    try {
+        # Invoke-RestMethod envía la petición y recibe la respuesta en formato JSON
+        $response = Invoke-RestMethod -Uri $url -Method Get
+        return $response  # Retornamos la respuesta de la API
+    } catch {
+        # Si ocurre un error (por ejemplo, problemas de red), mostramos el mensaje
+        Write-Host "Error al consultar la IP $ip en VirusTotal: $_"
+        return $null  # Retornamos null si hay un error
+    }
+}
+
+# Función para detectar conexiones sospechosas en el sistema
+function Detectar-ConexionesSospechosas {
+    # Obtener todas las conexiones TCP activas en el sistema (solo las que están en estado "Established")
+    $conexiones = Get-NetTCPConnection | Where-Object { $_.State -eq 'Established' }
+
+    # Iteramos sobre cada conexión encontrada
+    foreach ($conexion in $conexiones) {
+        $ipRemota = $conexion.RemoteAddress  # Extraemos la IP remota de la conexión
+
+        # Llamamos a la función para consultar la reputación de la IP remota en VirusTotal
+        $resultadoVT = Consultar-VirusTotalIP -ip $ipRemota
+
+        # Si la consulta fue exitosa y recibimos una respuesta
+        if ($resultadoVT) {
+            # VirusTotal devuelve response_code = 1 si la IP está en su base de datos
+            if ($resultadoVT.response_code -eq 1) {
+                # Revisamos cuántos "positives" tiene la IP (cuántos motores la marcaron como maliciosa)
+                if ($resultadoVT.positives -gt 0) {
+                    # Si hay reportes positivos, consideramos la IP como sospechosa
+                    Write-Host "IP sospechosa detectada: $ipRemota con $($resultadoVT.positives) reportes positivos en VirusTotal"
+                } else {
+                    # Si no tiene reportes positivos, informamos que la IP es segura
+                    Write-Host "IP $ipRemota no tiene reportes negativos en VirusTotal."
+                }
+            } else {
+                # Si response_code es diferente de 1, significa que VirusTotal no tiene información sobre la IP
+                Write-Host "IP $ipRemota no se encuentra en la base de datos de VirusTotal."
+            }
+        }
+    }
+}
+
+
+
+
+
+Main.ps1 
+Este script de PowerShell se encarga de importar varios módulos y ofrecer un menú interactivo al usuario para realizar diferentes tareas relacionadas con la seguridad y la gestión del sistema. Los módulos importados parecen estar enfocados en análisis de archivos, detección de archivos ocultos, monitorización de recursos y revisión de conexiones de red.
+
+el programa primero crea un archivo de manifiesto para el módulo VirusTotalReport, especificando su ubicación. El manifiesto describe el módulo y sus propiedades.
+después Importa el módulo VirusTotalReport, haciendo disponible sus funciones y cmdlets en la sesión actual.
+Después lo que hará sera Obtiener información sobre el módulo Get-VirusTotalReport para confirmar que se ha importado correctamente.
+y después tendrá un menú interactivo de las opciones disponibles y asi poder elegir la opción necesaria 
+New-ModuleManifest -Path "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\VirusTotalReport.psd1" -RootModule "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\  VirusTotalReport.psm1"
+Import-Module "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\VirusTotalReport.psm1"
+Get-Module Get-VirusTotalReport
+
+New-ModuleManifest -Path "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\Arch_Oc.psd1" -RootModule "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\Arch_Oc.psm1"
+Import-Module "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\Arch_Oc.psm1" 
+Get-Module archivos_ocultos 
+
+New-ModuleManifest -Path "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\Recursos.psd1" -RootModule "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\Recursos.psm1"
+Import-Module "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\Recursos.psm1" 
+Get-Module Show-Resources
+
+New-ModuleManifest -Path "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\conexionesSospechosas.psd1" -RootModule "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\Recursos.psm1"
+Import-Module "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\Recursos.psm1" 
+Get-Module Detectar-ConexionesSospechosas
+
+do {
+    Write-Host "Elija una opcion"
+    Write-Host "1) Revision de archivos hashes"
+    Write-Host "2) Buscar archivos ocultos"
+    Write-Host "3) Revision de uso de recursos del sistema"
+    Write-Host "4) Revisas Conexiones sospechosas"
+    Write-Host "5) Salir"
+
+    $opcion = Read-Host
+
+    switch ($opcion) {
+        1 {Get-VirusTotalReport}
+        2{archivos_ocultos}
+        3{Show-Resources}
+        4{Detectar-ConexionesSospechosas}
+        5 {exit}
+    }
+} while ($opcion -ne 5)
+
+
+
