@@ -2,7 +2,7 @@ import os
 import logging
 from mutagen import File
 
-# Configuración de logging para guardar los errores en un archivo
+# Configuracion de logging para guardar los errores en un archivo
 logging.basicConfig(
     filename='errores_metadatos.log',
     level=logging.ERROR,
@@ -21,7 +21,7 @@ def mostrar_metadatos(ruta_archivo):
     except Exception as e:
         error_message = f"Error al leer {ruta_archivo}: {str(e)}"
         print(error_message)
-        logging.error(error_message)  # Registrar el error en el log
+        logging.error(error_message)  
 
 def listar_archivos(ruta_directorio, extensiones):
     try:
@@ -67,7 +67,7 @@ def menu_meta():
 
         if opcion in ['1', '2', '3', '4', '5', '6', '7']:
             ruta_directorio = input("Introduce la ruta del directorio: ")
-            # Verificar si la ruta es válida
+           
             if os.path.isdir(ruta_directorio):
                 extensiones = {
                     '1': ('.mp3',),
@@ -86,11 +86,10 @@ def menu_meta():
                 else:
                     print("No se encontraron archivos en el directorio.")
             else:
-                # Registrar y mostrar el error de ruta inválida
+               
                 error_message = f"Ruta no válida: {ruta_directorio}"
                 print(error_message)
-                logging.error(error_message)  # Registrar en el log
-        
+                logging.error(error_message)
         elif opcion == '8':
             imprimir_errores()
         

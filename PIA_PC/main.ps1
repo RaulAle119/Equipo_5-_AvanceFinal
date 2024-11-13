@@ -28,9 +28,9 @@ New-ModuleManifest -Path "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_P
 Import-Module "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\Recursos.psm1" 
 Get-Module Show-Resources
 
-New-ModuleManifest -Path "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\conexionesSospechosas.psd1" -RootModule "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\Recursos.psm1"
-Import-Module "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\Recursos.psm1" 
-Get-Module Detectar-ConexionesSospechosas
+New-ModuleManifest -Path "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\ConexionesSospechosas.psd1" -RootModule "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\ConexionesSospechosas.psm1"
+Import-Module "C:\Users\raulg\Documents\GitHub\desktop-tutorial\PIA_PC\ConexionesSospechosas.psm1" 
+Get-Module Get-cs
 
 do {
     Write-Host "Elija una opcion"
@@ -46,7 +46,7 @@ do {
         1 {Get-VirusTotalReport}
         2{archivos_ocultos}
         3{Show-Resources}
-        4{Detectar-ConexionesSospechosas}
+        4{Get-cs}
         5 {exit}
     }
 } while ($opcion -ne 5)

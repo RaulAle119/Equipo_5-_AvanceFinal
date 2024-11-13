@@ -13,7 +13,6 @@ def menu():
         print("4.Metadatos")
         print("5.Generador de contraseñas")
         print("6.Salir")
-
         opcion= input("Elige una opcion del menu: ")
 
         if opcion.isnumeric():

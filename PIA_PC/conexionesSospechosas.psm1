@@ -2,7 +2,7 @@
 # Este módulo permite detectar conexiones de red sospechosas y consultar su reputación en VirusTotal.
 
 # Función para solicitar la API Key al usuario (solo una vez por sesión)
-function Obtener-ApiKey {
+function Get-ApiKey {
     if (-not $Script:ApiKey) {
         $Script:ApiKey = Read-Host -Prompt "Introduce tu clave API de VirusTotal"
         
@@ -12,18 +12,17 @@ function Obtener-ApiKey {
             return $null
         }
     }
-
     return $Script:ApiKey
 }
 
 # Función para consultar la reputación de una IP en VirusTotal
-function Consultar-VirusTotalIP {
+function Get-Api {
     param (
-        [string]$Ip    # Dirección IP que se va a consultar
+        [string]$Ip    
     )
     
     # Solicitar la API Key al usuario si no está disponible
-    $ApiKey = Obtener-ApiKey
+    $ApiKey = Get-ApiKey
     
     # Verificamos si se ha proporcionado una API Key
     if (-not $ApiKey) {
@@ -47,9 +46,9 @@ function Consultar-VirusTotalIP {
 }
 
 # Función para detectar conexiones sospechosas en el sistema
-function Detectar-ConexionesSospechosas {
+function Get-cs {
     # Solicitar la API Key al usuario si no está disponible
-    $ApiKey = Obtener-ApiKey
+    $ApiKey = Get-ApiKey
     
     # Verificamos si se ha proporcionado una API Key
     if (-not $ApiKey) {
@@ -62,14 +61,14 @@ function Detectar-ConexionesSospechosas {
 
     # Iteramos sobre cada conexión encontrada
     foreach ($Conexion in $Conexiones) {
-        $IpRemota = $Conexion.RemoteAddress  # Extraemos la IP remota de la conexión
+        $IpRemota = $Conexion.RemoteAddress  
 
         # Llamamos a la función para consultar la reputación de la IP remota en VirusTotal
         $ResultadoVT = Consultar-VirusTotalIP -Ip $IpRemota
 
         # Si la consulta fue exitosa y recibimos una respuesta
         if ($ResultadoVT) {
-            # VirusTotal devuelve response_code = 1 si la IP está en su base de datos
+            # Verificamos si la IP está en su base de datos
             if ($ResultadoVT.response_code -eq 1) {
                 # Revisamos cuántos "positives" tiene la IP (cuántos motores la marcaron como maliciosa)
                 if ($ResultadoVT.positives -gt 0) {
@@ -86,6 +85,3 @@ function Detectar-ConexionesSospechosas {
         }
     }
 }
-
-# Exportamos las funciones que estarán disponibles para el usuario
-Export-ModuleMember -Function Obtener-ApiKey, Consultar-VirusTotalIP, Detectar-ConexionesSospechosas

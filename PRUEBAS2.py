@@ -7,6 +7,7 @@ script_path = r"C:\Users\raulg\Documents\GitHub\Equipo_5-_AvanceFinal\PIA_PC"
 # Función para ejecutar scripts de PowerShell
 def run_powershell_script(script_name):
     script = os.path.join(script_path, script_name)
+
     if not os.path.isfile(script):
         print(f"El script {script_name} no existe.")
         return
