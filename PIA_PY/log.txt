@@ -1,9 +1,0 @@
-2024-10-20 18:42:21,641 - ERROR - Error HTTP: 422 Client Error: Unprocessable Entity for url: https://api.abuseipdb.com/api/v2/check?ipAddress=rf&maxAgeInDays=90
-2024-10-20 18:48:08,886 - ERROR - Error HTTP: 401 Client Error: Unauthorized for url: https://api.abuseipdb.com/api/v2/check?ipAddress=d&maxAgeInDays=90
-2024-10-20 19:17:01,045 - ERROR - Ruta no válida: d
-2024-10-20 19:19:59,006 - ERROR - La longitud mínima de la contraseña es 8 caracteres.
-2024-10-20 23:15:40,764 - ERROR - Error HTTP: 422 Client Error: Unprocessable Entity for url: https://api.abuseipdb.com/api/v2/report
-2024-10-20 23:16:12,721 - ERROR - Error HTTP: 422 Client Error: Unprocessable Entity for url: https://api.abuseipdb.com/api/v2/report
-2024-10-20 23:18:12,361 - ERROR - Error HTTP: 422 Client Error: Unprocessable Entity for url: https://api.abuseipdb.com/api/v2/report
-2024-10-20 23:27:51,484 - ERROR - Ruta no válida: fbb
-2024-10-20 23:28:47,299 - ERROR - La longitud mínima de la contraseña es 8 caracteres.
